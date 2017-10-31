@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<style>
+#container {
+    min-width: 310px;
+    max-width: 100%;
+    height: 800px;
+    margin: 0 auto
+}
+</style>
+<div id="container"></div>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/series-label.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script>
+var years = 35;
+var principal = 10000;
+var interestRates = [0.01,0.02,0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09];
+var savingsRate = 0.25;
+var cyclesToSave = {start:0,end:years};
+
+function compound(value, rate) {
+    return Math.round((value + (value * rate))*1000)/1000;
+}
+
+function addSavings(salary, savingsRate, totalSavings, cyclesToSave, cycle){	
+	var value = 0;
+    if(cyclesToSave.start >= cycle || cyclesToSave.end <= cycle){
+    	value = totalSavings;
+    }else{
+    	console.log('Saved ' + Math.round(((salary * savingsRate) * 1000 ) / 1000)+ ' During Cycle ', cycle);
+    	value = Math.round((totalSavings + (salary * savingsRate)) * 1000)/1000;
+    }
+	return value;
+}
+
+function updateChart(data, chart) {
+    chart.series[0].setData(data, true);
+}
+
+function addSeries(interestRate, data, chart) {
+    chart.addSeries({
+        data: data,
+        name: 'Interest Rate ' + Math.round(interestRate * 100) + '%',
+    });
+}
+function addMultipleSeriesToGraph(interestRates, points, chart){
+	for(var x = 0; x < interestRates.length; x++){
+		addSeries(interestRates[x], points[x], chart);
+	}
+}
+function calculateReturns(years, principal, interestRates, savingRates, cyclesToSave) {
+    var money = principal;
+    var salary = 85000;
+    var d = ',';
+    var points = [];
+    var temp = [];
+    for (var i = 0; i < interestRates.length; i++) {
+        for (var x = 0; x < years; x++) {
+            if (x === years - 1) {
+                d = '';
+            }
+            money = compound(money, interestRates[i]);
+            money = addSavings(salary, savingsRate, money, cyclesToSave, x);
+        	salary = compound(salary, 0.020);
+        	console.log('Total Salary: ',salary);
+            temp.push(money);
+        }
+        salary = 85000;
+        points.push(temp);
+        money = principal;
+        temp = [];
+    }
+    //console.log(points);
+    return points;
+}
+
+var options = {
+
+    title: {
+        text: 'Growth Over ' + years + ' Cycles'
+    },
+
+    subtitle: {
+        text: 'Rate(s) of ' + interestRates
+    },
+
+    yAxis: {
+        title: {
+            text: 'Dollars'
+        }
+    },
+    xAxis: {
+    	title: {
+    		text: 'Cycles'
+    	}
+    },
+     legend: {
+        layout: 'vertical',
+        backgroundColor: '#FFFFFF',
+        align: 'left',
+        verticalAlign: 'top',
+        floating: true,
+        x: 90,
+        y: 45
+    },
+    tooltip: {
+        shared: true,
+      	crosshairs: true,
+      },
+    plotOptions: {
+        series: {
+            label: {
+                connectorAllowed: false
+            },
+            pointStart: 2017
+        }
+    },
+    responsive: {
+        rules: [{
+            condition: {
+                maxWidth: 500
+            },
+            chartOptions: {
+                legend: {
+                    layout: 'horizontal',
+                    align: 'center',
+                    verticalAlign: 'bottom'
+                }
+            }
+        }]
+    }
+};
+
+var chart = Highcharts.chart('container', options);
+var points = calculateReturns(years, principal, interestRates, savingsRate, cyclesToSave);
+addMultipleSeriesToGraph(interestRates, points, chart);
+</script>
+</body>
+
+</html>
